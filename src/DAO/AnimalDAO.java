@@ -1,61 +1,81 @@
 package DAO;
 import Conexao.Conexao;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import Model.Animal;
+import Model.Cachorro;
 import Model.Gato;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
-public class GatoDAO {
-
-    public void cadastrarGato(Gato gato) throws SQLException {
-        String sqlAnimal = "INSERT INTO ANIMAL (NOME, ESPECIE, IDADE, PESO) VALUES (?, ?, ?, ?)";
-        String sqlGato = "INSERT INTO GATO (ANIMAL_ID, RACA, GOSTA_DE_ARRANHAR) VALUES (?, ?, ?)";
-
+public class AnimalDAO {
+    public Animal buscarPorNome(String nome) throws SQLException {
+        String sql = "SELECT * FROM ANIMAL WHERE NOME = ?";
         Connection conn = Conexao.getConexao();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, nome);
+        ResultSet rs = ps.executeQuery();
 
-        try {
-            // 1. Cadastra o animal e pega o ID gerado
-            PreparedStatement psAnimal = conn.prepareStatement(sqlAnimal, PreparedStatement.RETURN_GENERATED_KEYS);
-            psAnimal.setString(1, gato.getNome());
-            psAnimal.setString(2, gato.getEspecie());
-            psAnimal.setInt(3, gato.getIdade());
-            psAnimal.setDouble(4, gato.getPeso());
+        if (rs.next()) {
+            int id = rs.getInt("ID");
+            String especie = rs.getString("ESPECIE");
+            int idade = rs.getInt("IDADE");
+            double peso = rs.getDouble("PESO");
 
-            psAnimal.executeUpdate();
+            if (especie.equalsIgnoreCase("gato")) {
+                Gato gato = new Gato();
+                gato.setId(id);
+                gato.setNome(nome);
+                gato.setEspecie(especie);
+                gato.setIdade(idade);
+                gato.setPeso(peso);
 
-            ResultSet rs = psAnimal.getGeneratedKeys();
-
-            int idAnimal = -1;
-
-            if (rs.next()) {
-                idAnimal = rs.getInt(1);
-                int idGerado = rs.getInt(1);
-                gato.setId(idGerado); // armazena no objeto
-            }
-
-            rs.close();
-            psAnimal.close();
-
-            if (idAnimal != -1) {
-                // 2. Cadastra o gato usando o ID do animal
+                // Buscar dados da tabela GATO
+                String sqlGato = "SELECT RACA, GOSTA_DE_ARRANHAR FROM GATO WHERE ANIMAL_ID = ?";
                 PreparedStatement psGato = conn.prepareStatement(sqlGato);
-                psGato.setInt(1, idAnimal);
-                psGato.setString(2, gato.getRaca());
-                psGato.setBoolean(3, gato.getGostaDeArranhar());
+                psGato.setInt(1, id);
+                ResultSet rsGato = psGato.executeQuery();
 
-                psGato.executeUpdate();
+                if (rsGato.next()) {
+                    gato.setRaca(rsGato.getString("RACA"));
+                    gato.setGostaDeArranhar(rsGato.getBoolean("GOSTA_DE_ARRANHAR"));
+                }
+
+                rsGato.close();
                 psGato.close();
+                return gato;
 
-                System.out.println("Gato cadastrado com sucesso!");
-            } else {
-                System.out.println("Erro ao obter o ID do animal.");
+            } else if (especie.equalsIgnoreCase("cachorro")) {
+                Cachorro cachorro = new Cachorro();
+                cachorro.setId(id);
+                cachorro.setNome(nome);
+                cachorro.setEspecie(especie);
+                cachorro.setIdade(idade);
+                cachorro.setPeso(peso);
+
+                // Buscar dados da tabela CACHORRO
+                String sqlCachorro = "SELECT RACA, TEM_CARTEIRA_VACINACAO FROM CACHORRO WHERE ANIMAL_ID = ?";
+                PreparedStatement psCachorro = conn.prepareStatement(sqlCachorro);
+                psCachorro.setInt(1, id);
+                ResultSet rsCachorro = psCachorro.executeQuery();
+
+                if (rsCachorro.next()) {
+                    cachorro.setRaca(rsCachorro.getString("RACA"));
+                    cachorro.setCarteiraVacinacao(rsCachorro.getBoolean("TEM_CARTEIRA_VACINACAO"));
+                }
+
+                rsCachorro.close();
+                psCachorro.close();
+                return cachorro;
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("Não foi possível cadastrar o gato.");
         }
+
+        rs.close();
+        ps.close();
+        return null;
     }
+
+
+
 }
 

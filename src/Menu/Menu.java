@@ -142,7 +142,7 @@ public class Menu {
         int idAnimal = scanner.nextInt();
         scanner.nextLine(); // consumir o \n
 
-        System.out.print("Digite a data do atendimento (YYYY-MM-DD): ");
+        System.out.print("Digite a data do atendimento: (YYYY-MM-DD): ");
         String dataStr = scanner.nextLine();
 
         LocalDate data;
@@ -171,7 +171,7 @@ public class Menu {
     public static void consultarAtendimentosPorCliente() throws SQLException {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Digite o CPF do cliente: (Formato : xxx.xxx.xxx-xx ");
+        System.out.print("Digite o CPF do cliente: (Formato : xxx.xxx.xxx-xx)");
         String cpfCliente = scanner.nextLine();
 
         new AtendimentoDAO().listarAtendimentosPorCpf(cpfCliente);
